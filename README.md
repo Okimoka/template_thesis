@@ -27,7 +27,21 @@ In theory, this is enough for a workable BIDS dataset. However, it is useful to 
 2. Add the mock "freeView" and "allTasks" tasks. Instructions on how to do this are found in `augmentation/add_freeView_final.py`
 
 To now produce `.fif` outputs with merged ET+EEG data, the correct version of the mne-bids-eyetracking-pipeline has to be used.
-After the python venv is set up, replace the `mne_bids_pipeline` folder with 
+After the python venv is set up, replace the `mne_bids_pipeline` folder in the venv directory with the mne-bids-eyetracking-pipeline-smi-integration folder in `dataset_preparation` (rename it back to `mne_bids_pipeline`).
+
+The pipeline can be run with `sbatch start_pipeline.sh`, after adjusting the config and required slurm parameters to the specific use case.
+
+### Creating effects plot from outputted .fif files
+
+1. Decide what kind of effects plots should be computed. These should be formatted like in `scripts/analysis/create_models/group_definitions.jl`, i.e.:
+
+- A tuple of paths to the fifs will concatenate all recordings and compute one effects model
+- A tuple containing a single fif path will fit the effects model on that recording 
+
+2. Once group_definitions.jl is done, run `sbatch start_chunked_array.sh` on a cluster to mass-fit all models. The result will be a folder for each list defined in group_definitions.jl containing the `.jld2` model files
+
+3. Generate an average FRP by running `src/new_analyze_group_original.jl` (after entering the name of the folder containing the `.jld2` files). All other scripts in the analysis folder are suitable to be executed on such a folder of models
+
 
 
 ## Overview of Folder Structure 
