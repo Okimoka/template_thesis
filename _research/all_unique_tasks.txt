@@ -1,0 +1,116 @@
+EEG tuples (task, run) by #subjects
+-----------------------------------
+task                     run  count
+-----------------------  ---  -----
+DespicableMe               1   2634
+DiaryOfAWimpyKid           1   2802
+FunwithFractals            1   2687
+RestingState               1   2880
+ThePresent                 1   2672
+allTasks                   1   1282
+allTasks                   2   1755
+allTasks                   3   1788
+allTasks                   4   1755
+allTasks                   5   2066
+allTasks                   6   2285
+allTasks                   7   1806
+allTasks                   8   1591
+allTasks                   9   1504
+allTasks                  10   1506
+allTasks                  11   1491
+allTasks                  12    643
+allTasks                  13   1102
+contrastChangeDetection    1   1777
+contrastChangeDetection    2   1829
+contrastChangeDetection    3   1784
+freeView                   1   1282
+freeView                   2   1755
+freeView                   3   1788
+freeView                   4   1755
+freeView                   5   2066
+seqLearning6target         1    690
+seqLearning8target         1   1200
+surroundSupp               1   2215
+surroundSupp               2   1935
+symbolSearch               1   1567
+
+Unique tuples: 31
+Total subject-occurrences (sum of counts): 55892
+
+MISC tuples (task, run) by #subjects
+------------------------------------
+task                     run  count
+-----------------------  ---  -----
+DespicableMe               1   2398
+DiaryOfAWimpyKid           1   2005
+FunwithFractals            1   2060
+RestingState               1   2523
+ThePresent                 1   2034
+allTasks                   1   1282
+allTasks                   2   1755
+allTasks                   3   1788
+allTasks                   4   1755
+allTasks                   5   2066
+allTasks                   6   2285
+allTasks                   7   1806
+allTasks                   8   1591
+allTasks                   9   1504
+allTasks                  10   1506
+allTasks                  11   1491
+allTasks                  12    643
+allTasks                  13   1102
+contrastChangeDetection    1   2092
+contrastChangeDetection    2   1941
+contrastChangeDetection    3   1948
+freeView                   1   1282
+freeView                   2   1755
+freeView                   3   1788
+freeView                   4   1755
+freeView                   5   2066
+seqLearning6target         1    676
+seqLearning8target         1   1175
+surroundSupp               1   2229
+surroundSupp               2   2019
+symbolSearch               1   2382
+
+Unique tuples: 31
+Total subject-occurrences (sum of counts): 54702
+
+COMBINED tuples (EEG + MISC) by #subjects
+-----------------------------------------
+task                     run  count
+-----------------------  ---  -----
+DespicableMe               1   5032
+DiaryOfAWimpyKid           1   4807
+FunwithFractals            1   4747
+RestingState               1   5403
+ThePresent                 1   4706
+allTasks                   1   2564
+allTasks                   2   3510
+allTasks                   3   3576
+allTasks                   4   3510
+allTasks                   5   4132
+allTasks                   6   4570
+allTasks                   7   3612
+allTasks                   8   3182
+allTasks                   9   3008
+allTasks                  10   3012
+allTasks                  11   2982
+allTasks                  12   1286
+allTasks                  13   2204
+contrastChangeDetection    1   3869
+contrastChangeDetection    2   3770
+contrastChangeDetection    3   3732
+freeView                   1   2564
+freeView                   2   3510
+freeView                   3   3576
+freeView                   4   3510
+freeView                   5   4132
+seqLearning6target         1   1366
+seqLearning8target         1   2375
+surroundSupp               1   4444
+surroundSupp               2   3954
+symbolSearch               1   3949
+
+Unique tuples: 31
+Total subject-occurrences (sum of counts): 110594

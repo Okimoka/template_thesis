@@ -1,0 +1,206 @@
+site_name: MNE-BIDS-Pipeline
+repo_url: https://github.com/mne-tools/mne-bids-pipeline
+edit_uri: edit/main/docs/source/
+# Keep this in sync with pyproject.toml and index.md
+site_description: The MNE-BIDS-Pipeline is a full-flegded processing pipeline for your MEG and EEG data.
+site_author: MNE-BIDS-Pipeline authors
+docs_dir: ./source
+site_dir: ./site
+strict: true
+use_directory_urls: false  # For easier navigation on CircleCI
+watch:  # Additional directories to watch for changes during `mkdocs serve`
+    - ../mne_bids_pipeline
+theme:
+    name: material
+    logo: assets/mne.svg
+    favicon: assets/favicon.ico
+    features:
+        - navigation.tabs
+        - navigation.instant  # Load pages via XMLHttpRequest (XHR)
+        - navigation.tracking
+        - content.code.copy  # copy button
+    palette:
+      # Palette toggle for automated theme selection
+      - media: "(prefers-color-scheme)"
+        toggle:
+          icon: material/brightness-auto
+          name: Switch to system preference
+
+      # Palette toggle for light mode
+      - media: "(prefers-color-scheme: light)"
+        scheme: default
+        primary: white
+        toggle:
+          icon: material/brightness-7
+          name: Switch to light mode
+
+      # Palette toggle for dark mode
+      - media: "(prefers-color-scheme: dark)"
+        scheme: slate
+        toggle:
+          icon: material/brightness-4
+          name: Switch to dark mode
+
+    custom_dir: overrides
+extra:
+    social:
+        - icon: fontawesome/brands/github
+          link: https://github.com/mne-tools/mne-bids-pipeline
+          name: GitHub repository
+        - icon: fontawesome/brands/mastodon
+          link: https://fosstodon.org/@mne
+          name: MNE news on Mastodon
+        - icon: fontawesome/brands/twitter
+          link: https://twitter.com/mne_news
+          name: MNE news on Twitter
+    version:
+        provider: mike
+        default: stable
+hooks:
+    - ./hooks.py
+
+copyright: Copyright &copy; MNE-BIDS-Pipeline authors
+
+extra_css:
+    - css/extra.css
+# https://squidfunk.github.io/mkdocs-material/reference/data-tables/
+extra_javascript:
+  - https://unpkg.com/tablesort@5.3.0/dist/tablesort.min.js
+  - javascripts/tablesort.js
+not_in_nav: |
+  /governance.md
+nav:
+    - Home: index.md
+    - Getting started:
+        - Installation: getting_started/install.md
+        - Basic usage: getting_started/basic_usage.md
+        - Preparations for source-level analyses: getting_started/freesurfer.md
+    - Processing steps:
+        - Overview: features/overview.md
+        - List of processing steps: features/steps.md
+    - Configuration options:
+        - General settings: settings/general.md
+        - Preprocessing:
+            - Break detection: settings/preprocessing/breaks.md
+            - Bad channel detection: settings/preprocessing/autobads.md
+            - Maxwell filter: settings/preprocessing/maxfilter.md
+            - Filtering & resampling:
+                - Filtering: settings/preprocessing/filter.md
+                - Resampling: settings/preprocessing/resample.md
+            - Epoching: settings/preprocessing/epochs.md
+            - Artifact removal:
+                - Stimulation artifact: settings/preprocessing/stim_artifact.md
+                - SSP, ICA, and artifact regression: settings/preprocessing/ssp_ica.md
+                - Amplitude-based artifact rejection: settings/preprocessing/artifacts.md
+        - Sensor-level analysis:
+            - Condition contrasts: settings/sensor/contrasts.md
+            - Decoding / MVPA: settings/sensor/mvpa.md
+            - Time-frequency analysis: settings/sensor/time_freq.md
+            - Group-level analysis: settings/sensor/group_level.md
+        - Source-level analysis:
+            - General settings: settings/source/general.md
+            - BEM surface: settings/source/bem.md
+            - Source space & forward solution: settings/source/forward.md
+            - Inverse solution: settings/source/inverse.md
+        - Report generation: settings/reports/report_generation.md
+        - Caching: settings/caching.md
+        - Parallelization: settings/parallelization.md
+        - Logging: settings/logging.md
+        - Error handling: settings/error_handling.md
+
+    - Examples:
+        - Examples Gallery: examples/examples.md
+        - examples/ds003392.md
+        - examples/ds004229.md
+        - examples/ds000246.md
+        - examples/ds000247.md
+        - examples/ds000248_base.md
+        - examples/ds000248_ica.md
+        - examples/ds000248_T1_BEM.md
+        - examples/ds000248_FLASH_BEM.md
+        - examples/ds000248_no_mri.md
+        - examples/ds003104.md
+        - examples/eeg_matchingpennies.md
+        - examples/MNE-funloc-data.md
+        - examples/MNE-phantom-KIT-data.md
+        - examples/ds001810.md
+        - examples/ds000117.md
+        - examples/ds003775.md
+        - examples/ds004107.md
+        - examples/ds001971.md
+        - examples/ERP_CORE.md
+    - What's new: changes.md
+    - Tags: tags.md
+
+plugins:
+    - search
+    - macros
+    - privacy # https://squidfunk.github.io/mkdocs-material/plugins/privacy/
+    - include-markdown
+    - exclude:
+        glob:
+          - "*.py"  # Python scripts
+          - "*.inc"  # includes
+    - mkdocstrings:
+        default_handler: python
+        enable_inventory: true
+        custom_templates: templates
+        handlers:
+            python:
+                paths:  # Where to find the packages and modules to import
+                    - ../
+                options:
+                    show_source: true
+                    show_if_no_docstring: false
+                    show_root_heading: false
+                    show_root_toc_entry: false
+                    show_root_full_path: false
+                    separate_signature: true
+                    show_signature_annotations: true
+                    unwrap_annotated: true
+                    signature_crossrefs: true
+                    line_length: 88  # Black's default
+                    show_bases: false
+                    docstring_style: numpy
+                inventories:
+                    - https://mne.tools/dev/objects.inv
+    - mike:
+        canonical_version: stable
+markdown_extensions:
+    - admonition
+    - abbr
+    - attr_list  # Allows to turn any element into a button
+    - pymdownx.details
+    - pymdownx.emoji:
+        emoji_index: !!python/name:material.extensions.emoji.twemoji
+        emoji_generator: !!python/name:material.extensions.emoji.to_svg
+    - pymdownx.superfences:
+        custom_fences:
+          - name: mermaid
+            class: mermaid
+            format: !!python/name:pymdownx.superfences.fence_code_format
+    - pymdownx.highlight:
+        # linenums: true
+        # linenums_style: auto
+        auto_title: true
+        auto_title_map:
+            "Bash": Run in your terminal
+    - pymdownx.magiclink:  # turns e.g. GitHub PR & issues numbers and usernames into proper links
+        repo_url_shorthand: true
+        repo: mne-bids-pipeline
+        user: mne-tools
+    - tables
+    - toc:
+        permalink: true  # Add paragraph symbol to link to current headline
+    - pymdownx.tabbed:
+        alternate_style: true
+
+# https://www.mkdocs.org/user-guide/configuration/#validation
+validation:
+  # Everything set to "warn" will cause an error when building in strict mode with
+  # mkdocs build --strict
+  omitted_files: warn
+  not_found: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn

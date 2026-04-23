@@ -1,0 +1,1379 @@
+version: 2.1
+
+orbs:
+  browser-tools: circleci/browser-tools@1.2
+  codecov: codecov/codecov@5.3.0
+
+# Aliases to reuse
+_imageconfig: &imageconfig
+  docker:
+    - image: cimg/python:3.12.4
+
+# https://circleci.com/docs/workflows/#executing-workflows-for-a-git-tag
+
+commands:
+  bash_env:
+    steps:
+      - run:
+          name: Set BASH_ENV
+          command: |
+            ./.circleci/setup_bash.sh
+  gitconfig:
+    steps:
+      - run:
+          name: Set up git config
+          command: |
+            git config --global user.email "ci-build@mne.tools"
+            git config --global user.name "ci-build"
+
+jobs:
+  setup_env:
+    <<: *imageconfig
+    steps:
+      - run:
+          name: Avoid checking out entire repo
+          command: |
+            CIRCLE_REPOSITORY_URL_HTTPS=$(echo "$CIRCLE_REPOSITORY_URL" | sed --expression="s/git@github.com:/https:\/\/github.com\//g")
+            echo "Using: $CIRCLE_REPOSITORY_URL_HTTPS"
+            if [ ! -e '/home/circleci/project/.git' ] ; then
+              echo 'Cloning git repository'
+              mkdir -p '/home/circleci/project'
+              cd '/home/circleci/project'
+              git clone --single-branch --branch main "$CIRCLE_REPOSITORY_URL_HTTPS" -b main .  # this line is the big change!
+              git remote set-url origin "$CIRCLE_REPOSITORY_URL"
+            fi
+      - checkout
+      - bash_env
+      - run:
+          name: Get Python running
+          command: |
+            pip install --upgrade --progress-bar off pip
+            # TODO: Restore https://api.github.com/repos/mne-tools/mne-bids/zipball/main pending https://github.com/mne-tools/mne-bids/pull/1349/files#r1885104885
+            pip install --upgrade --progress-bar off "autoreject @ https://api.github.com/repos/autoreject/autoreject/zipball/master" "mne[hdf5] @ git+https://github.com/mne-tools/mne-python@main" "mne-bids[full] @ git+https://github.com/mne-tools/mne-bids@main" numba
+            pip install -ve .[tests] onnxruntime "PyQt6!=6.6.1" "PyQt6-Qt6!=6.6.1,!=6.6.2,!=6.6.3,!=6.7.0"
+      - run:
+          name: Check Qt
+          command: |
+            wget -q https://raw.githubusercontent.com/mne-tools/mne-python/main/tools/check_qt_import.sh
+            bash check_qt_import.sh PyQt6
+      # Look at what we have and fail early if there is some library conflict
+      - run:
+          name: Check installation
+          command: |
+            make check
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project
+            - mne_data
+            - minimal_cmds
+            - .pyenv
+
+  cache_ds000117:
+    <<: *imageconfig
+    steps:
+      - attach_workspace:
+          at: ~/
+      - restore_cache:
+          keys:
+            - data-cache-ds000117-3
+      - bash_env
+      - run:
+          name: Get ds000117
+          command: |
+            $DOWNLOAD_DATA ds000117
+      - codecov/upload
+      - save_cache:
+          key: data-cache-ds000117-3
+          paths:
+            - ~/mne_data/ds000117
+
+  cache_ds003775:
+    <<: *imageconfig
+    steps:
+      - attach_workspace:
+          at: ~/
+      - restore_cache:
+          keys:
+            - data-cache-ds003775-2
+      - bash_env
+      - run:
+          name: Get ds003775
+          command: |
+            $DOWNLOAD_DATA ds003775
+      - save_cache:
+          key: data-cache-ds003775-2
+          paths:
+            - ~/mne_data/ds003775
+
+  cache_ds001971:
+    <<: *imageconfig
+    steps:
+      - attach_workspace:
+          at: ~/
+      - restore_cache:
+          keys:
+            - data-cache-ds001971-2
+      - bash_env
+      - run:
+          name: Get ds001971
+          command: |
+            $DOWNLOAD_DATA ds001971
+      - codecov/upload
+      - save_cache:
+          key: data-cache-ds001971-2
+          paths:
+            - ~/mne_data/ds001971
+
+  cache_ds004107:
+    <<: *imageconfig
+    steps:
+      - attach_workspace:
+          at: ~/
+      - restore_cache:
+          keys:
+            - data-cache-ds004107-2
+      - bash_env
+      - run:
+          name: Get ds004107
+          command: |
+            $DOWNLOAD_DATA ds004107
+      - codecov/upload
+      - save_cache:
+          key: data-cache-ds004107-2
+          paths:
+            - ~/mne_data/ds004107
+
+  cache_ds000246:
+    <<: *imageconfig
+    steps:
+      - attach_workspace:
+          at: ~/
+      - restore_cache:
+          keys:
+            - data-cache-ds000246-3
+      - bash_env
+      - run:
+          name: Get ds000246
+          command: |
+            $DOWNLOAD_DATA ds000246
+      - codecov/upload
+      - save_cache:
+          key: data-cache-ds000246-3
+          paths:
+            - ~/mne_data/ds000246
+
+  cache_ds000247:
+    <<: *imageconfig
+    steps:
+      - attach_workspace:
+          at: ~/
+      - restore_cache:
+          keys:
+            - data-cache-ds000247-3
+      - bash_env
+      - run:
+          name: Get ds000247
+          command: |
+            $DOWNLOAD_DATA ds000247
+      - codecov/upload
+      - save_cache:
+          key: data-cache-ds000247-3
+          paths:
+            - ~/mne_data/ds000247
+
+  cache_ds000248:
+    <<: *imageconfig
+    steps:
+      - attach_workspace:
+          at: ~/
+      - restore_cache:
+          keys:
+            - data-cache-ds000248-7
+      - bash_env
+      - run:
+          name: Get ds000248
+          command: |
+            $DOWNLOAD_DATA ds000248
+      - codecov/upload
+      - save_cache:
+          key: data-cache-ds000248-7
+          paths:
+            - ~/mne_data/ds000248
+
+  cache_ds001810:
+    <<: *imageconfig
+    steps:
+      - attach_workspace:
+          at: ~/
+      - restore_cache:
+          keys:
+            - data-cache-ds001810-2
+      - bash_env
+      - run:
+          name: Get ds001810
+          command: |
+            $DOWNLOAD_DATA ds001810
+      - codecov/upload
+      - save_cache:
+          key: data-cache-ds001810-2
+          paths:
+            - ~/mne_data/ds001810
+
+  cache_ds003104:
+    <<: *imageconfig
+    steps:
+      - attach_workspace:
+          at: ~/
+      - restore_cache:
+          keys:
+            - data-cache-ds003104-2
+      - bash_env
+      - run:
+          name: Get ds003104
+          command: |
+            $DOWNLOAD_DATA ds003104
+      - codecov/upload
+      - save_cache:
+          key: data-cache-ds003104-2
+          paths:
+            - ~/mne_data/ds003104
+
+  cache_ds003392:
+    <<: *imageconfig
+    steps:
+      - attach_workspace:
+          at: ~/
+      - restore_cache:
+          keys:
+            - data-cache-ds003392-2
+      - bash_env
+      - run:
+          name: Get ds003392
+          command: |
+            $DOWNLOAD_DATA ds003392
+      - codecov/upload
+      - save_cache:
+          key: data-cache-ds003392-2
+          paths:
+            - ~/mne_data/ds003392
+
+  cache_ds004229:
+    <<: *imageconfig
+    steps:
+      - attach_workspace:
+          at: ~/
+      - restore_cache:
+          keys:
+            - data-cache-ds004229-103
+      - bash_env
+      - run:
+          name: Get ds004229
+          command: |
+            $DOWNLOAD_DATA ds004229
+      - codecov/upload
+      - save_cache:
+          key: data-cache-ds004229-103
+          paths:
+            - ~/mne_data/ds004229
+
+  cache_eeg_matchingpennies:
+    <<: *imageconfig
+    steps:
+      - attach_workspace:
+          at: ~/
+      - restore_cache:
+          keys:
+            - data-cache-eeg_matchingpennies-1
+      - bash_env
+      - run:
+          name: Get eeg_matchingpennies
+          command: |
+            $DOWNLOAD_DATA eeg_matchingpennies
+      - codecov/upload
+      - save_cache:
+          key: data-cache-eeg_matchingpennies-1
+          paths:
+            - ~/mne_data/eeg_matchingpennies
+
+  cache_MNE-funloc-data:
+    <<: *imageconfig
+    steps:
+      - attach_workspace:
+          at: ~/
+      - restore_cache:
+          keys:
+            - data-cache-MNE-funloc-data-5
+      - bash_env
+      - run:
+          name: Get MNE-funloc-data
+          command: |
+            $DOWNLOAD_DATA MNE-funloc-data
+      - codecov/upload
+      - save_cache:
+          key: data-cache-MNE-funloc-data-5
+          paths:
+            - ~/mne_data/MNE-funloc-data
+
+  cache_MNE-phantom-KIT-data:
+    <<: *imageconfig
+    steps:
+      - attach_workspace:
+          at: ~/
+      - restore_cache:
+          keys:
+            - data-cache-MNE-phantom-KIT-data-1
+      - bash_env
+      - run:
+          name: Get MNE-phantom-KIT-data
+          command: |
+            $DOWNLOAD_DATA MNE-phantom-KIT-data
+      - codecov/upload
+      - save_cache:
+          key: data-cache-MNE-phantom-KIT-data-1
+          paths:
+            - ~/mne_data/MNE-phantom-KIT-data
+
+  cache_ERP_CORE:
+    <<: *imageconfig
+    steps:
+      - attach_workspace:
+          at: ~/
+      - restore_cache:
+          keys:
+            - data-cache-ERP_CORE-1
+      - bash_env
+      - run:
+          name: Get ERP_CORE
+          command: |
+            $DOWNLOAD_DATA ERP_CORE
+      - codecov/upload
+      - save_cache:
+          key: data-cache-ERP_CORE-1
+          paths:
+            - ~/mne_data/ERP_CORE
+
+  test_ds000117:
+    <<: *imageconfig
+    steps:
+      - attach_workspace:
+          at: ~/
+      - bash_env
+      - restore_cache:
+          keys:
+            - data-cache-ds000117-3
+      - run:
+          name: test ds000117
+          command: $RUN_TESTS ds000117
+      - codecov/upload
+      - store_test_results:
+          path: ./test-results
+      - store_artifacts:
+          path: ./test-results
+          destination: test-results
+      - store_artifacts:
+          path: /home/circleci/reports/ds000117
+          destination: reports/ds000117
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - mne_data/derivatives/mne-bids-pipeline/ds000117/*/*/*/*.html
+
+  test_ds003775:
+    <<: *imageconfig
+    steps:
+      - attach_workspace:
+          at: ~/
+      - bash_env
+      - restore_cache:
+          keys:
+            - data-cache-ds003775-2
+      - run:
+          name: test ds003775
+          command: $RUN_TESTS ds003775
+      - codecov/upload
+      - store_test_results:
+          path: ./test-results
+      - store_artifacts:
+          path: ./test-results
+          destination: test-results
+      - store_artifacts:
+          path: /home/circleci/reports/ds003775
+          destination: reports/ds003775
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - mne_data/derivatives/mne-bids-pipeline/ds003775/*/*/*/*.html
+
+  test_ds001971:
+    <<: *imageconfig
+    steps:
+      - attach_workspace:
+          at: ~/
+      - bash_env
+      - restore_cache:
+          keys:
+            - data-cache-ds001971-2
+      - run:
+          name: test ds001971
+          command: $RUN_TESTS ds001971
+      - codecov/upload
+      - store_test_results:
+          path: ./test-results
+      - store_artifacts:
+          path: ./test-results
+          destination: test-results
+      - store_artifacts:
+          path: /home/circleci/reports/ds001971
+          destination: reports/ds001971
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - mne_data/derivatives/mne-bids-pipeline/ds001971/*/*/*.html
+
+  test_ds004107:
+    <<: *imageconfig
+    resource_class: large  # memory
+    steps:
+      - attach_workspace:
+          at: ~/
+      - bash_env
+      - restore_cache:
+          keys:
+            - data-cache-ds004107-2
+      - run:
+          name: test ds004107
+          command: $RUN_TESTS ds004107
+      - codecov/upload
+      - store_test_results:
+          path: ./test-results
+      - store_artifacts:
+          path: ./test-results
+          destination: test-results
+      - store_artifacts:
+          path: /home/circleci/reports/ds004107
+          destination: reports/ds004107
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - mne_data/derivatives/mne-bids-pipeline/ds004107/*/*/*/*.html
+
+  test_ds000246:
+    <<: *imageconfig
+    steps:
+      - attach_workspace:
+          at: ~/
+      - bash_env
+      - restore_cache:
+          keys:
+            - data-cache-ds000246-3
+      - run:
+          name: test ds000246
+          no_output_timeout: 15m
+          command: $RUN_TESTS ds000246
+      - codecov/upload
+      - store_test_results:
+          path: ./test-results
+      - store_artifacts:
+          path: ./test-results
+          destination: test-results
+      - store_artifacts:
+          path: /home/circleci/reports/ds000246
+          destination: reports/ds000246
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - mne_data/derivatives/mne-bids-pipeline/ds000246/*/*/*.html
+            - mne_data/derivatives/mne-bids-pipeline/ds000246/*/*/*.tsv
+
+  test_ds000247:
+    <<: *imageconfig
+    steps:
+      - attach_workspace:
+          at: ~/
+      - bash_env
+      - restore_cache:
+          keys:
+            - data-cache-ds000247-3
+      - run:
+          name: test ds000247
+          command: $RUN_TESTS ds000247
+      - codecov/upload
+      - store_test_results:
+          path: ./test-results
+      - store_artifacts:
+          path: ./test-results
+          destination: test-results
+      - store_artifacts:
+          path: /home/circleci/reports/ds000247
+          destination: reports/ds000247
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - mne_data/derivatives/mne-bids-pipeline/ds000247/*/*/*/*.html
+
+  test_ds000248_base:
+    <<: *imageconfig
+    steps:
+      - attach_workspace:
+          at: ~/
+      - bash_env
+      - restore_cache:
+          keys:
+            - data-cache-ds000248-7
+      - run:
+          name: test ds000248_base
+          # Forces rerunning (cov and FLASH BEM) so don't check
+          command: $RUN_TESTS -r ds000248_base
+      - codecov/upload
+      - store_test_results:
+          path: ./test-results
+      - store_artifacts:
+          path: ./test-results
+          destination: test-results
+      - store_artifacts:
+          path: /home/circleci/reports/ds000248_base
+          destination: reports/ds000248_base
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - mne_data/derivatives/mne-bids-pipeline/ds000248_base/*/*/*.html
+            - mne_data/derivatives/mne-bids-pipeline/ds000248_base/*/*/*.json
+            - mne_data/derivatives/mne-bids-pipeline/ds000248_base/*/*/*.tsv
+
+  test_ds000248_ica:
+    <<: *imageconfig
+    steps:
+      - attach_workspace:
+          at: ~/
+      - bash_env
+      - restore_cache:
+          keys:
+            - data-cache-ds000248-7
+      - run:
+          name: test ds000248_ica
+          command: $RUN_TESTS ds000248_ica
+      - codecov/upload
+      - store_test_results:
+          path: ./test-results
+      - store_artifacts:
+          path: ./test-results
+          destination: test-results
+      - store_artifacts:
+          path: /home/circleci/reports/ds000248_ica
+          destination: reports/ds000248_ica
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - mne_data/derivatives/mne-bids-pipeline/ds000248_ica/*/*/*.html
+            - mne_data/derivatives/mne-bids-pipeline/ds000248_ica/*/*/*.tsv
+
+  test_ds000248_FLASH_BEM:
+    <<: *imageconfig
+    steps:
+      - attach_workspace:
+          at: ~/
+      - bash_env
+      - restore_cache:
+          keys:
+            - data-cache-ds000248-7
+      - run:
+          name: test BEM from FLASH
+          command: $RUN_TESTS -r ds000248_FLASH_BEM
+      - codecov/upload
+      - store_test_results:
+          path: ./test-results
+      - store_artifacts:
+          path: ./test-results
+          destination: test-results
+      - store_artifacts:
+          path: /home/circleci/reports/ds000248_FLASH_BEM
+          destination: reports/ds000248_FLASH_BEM
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - mne_data/derivatives/mne-bids-pipeline/ds000248_FLASH_BEM/*/*/*.html
+
+  test_ds000248_T1_BEM:
+    <<: *imageconfig
+    steps:
+      - attach_workspace:
+          at: ~/
+      - bash_env
+      - restore_cache:
+          keys:
+            - data-cache-ds000248-7
+      - run:
+          name: test BEM from T1 (watershed)
+          no_output_timeout: 20m
+          command: $RUN_TESTS -r ds000248_T1_BEM
+      - codecov/upload
+      - store_test_results:
+          path: ./test-results
+      - store_artifacts:
+          path: ./test-results
+          destination: test-results
+      - store_artifacts:
+          path: /home/circleci/reports/ds000248_T1_BEM
+          destination: reports/ds000248_T1_BEM
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - mne_data/derivatives/mne-bids-pipeline/ds000248_T1_BEM/*/*/*.html
+
+  test_ds000248_coreg_surfaces:
+    <<: *imageconfig
+    steps:
+      - attach_workspace:
+          at: ~/
+      - bash_env
+      - restore_cache:
+          keys:
+            - data-cache-ds000248-7
+      - run:
+          name: test head surface creation for MNE coregistration
+          command: $RUN_TESTS -c -r ds000248_coreg_surfaces
+      - codecov/upload
+      - store_test_results:
+          path: ./test-results
+      - store_artifacts:
+          path: ./test-results
+          destination: test-results
+
+  test_ds000248_no_mri:
+    <<: *imageconfig
+    steps:
+      - attach_workspace:
+          at: ~/
+      - bash_env
+      - restore_cache:
+          keys:
+            - data-cache-ds000248-7
+      - run:
+          name: test ds000248_no_mri
+          command: $RUN_TESTS ds000248_no_mri
+      - codecov/upload
+      - store_test_results:
+          path: ./test-results
+      - store_artifacts:
+          path: ./test-results
+          destination: test-results
+      - store_artifacts:
+          path: /home/circleci/reports/ds000248_no_mri
+          destination: reports/ds000248_no_mri
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - mne_data/derivatives/mne-bids-pipeline/ds000248_no_mri/*/*/*.html
+
+  test_ds001810:
+    <<: *imageconfig
+    resource_class: large
+    steps:
+      - attach_workspace:
+          at: ~/
+      - bash_env
+      - restore_cache:
+          keys:
+            - data-cache-ds001810-2
+      - run:
+          name: test ds001810
+          command: $RUN_TESTS ds001810
+      - codecov/upload
+      - store_test_results:
+          path: ./test-results
+      - store_artifacts:
+          path: ./test-results
+          destination: test-results
+      - store_artifacts:
+          path: /home/circleci/reports/ds001810
+          destination: reports/ds001810
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - mne_data/derivatives/mne-bids-pipeline/ds001810/*/*/*/*.html
+
+  test_ds003104:
+    <<: *imageconfig
+    steps:
+      - attach_workspace:
+          at: ~/
+      - bash_env
+      - restore_cache:
+          keys:
+            - data-cache-ds003104-2
+      - run:
+          name: test ds003104
+          command: $RUN_TESTS ds003104
+      - codecov/upload
+      - store_test_results:
+          path: ./test-results
+      - store_artifacts:
+          path: ./test-results
+          destination: test-results
+      - store_artifacts:
+          path: /home/circleci/reports/ds003104
+          destination: reports/ds003104
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - mne_data/derivatives/mne-bids-pipeline/ds003104/*/*/*.html
+
+  test_ds003392:
+    <<: *imageconfig
+    steps:
+      - attach_workspace:
+          at: ~/
+      - bash_env
+      - restore_cache:
+          keys:
+            - data-cache-ds003392-2
+      - run:
+          name: test ds003392
+          command: $RUN_TESTS ds003392
+      - codecov/upload
+      - store_test_results:
+          path: ./test-results
+      - store_artifacts:
+          path: ./test-results
+          destination: test-results
+      - store_artifacts:
+          path: /home/circleci/reports/ds003392
+          destination: reports/ds003392
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - mne_data/derivatives/mne-bids-pipeline/ds003392/*/*/*.html
+            - mne_data/derivatives/mne-bids-pipeline/ds003392/*/*/*.json
+            - mne_data/derivatives/mne-bids-pipeline/ds003392/*/*/*.tsv
+
+  test_ds004229:
+    <<: *imageconfig
+    resource_class: large  # head position estimation
+    steps:
+      - attach_workspace:
+          at: ~/
+      - bash_env
+      - restore_cache:
+          keys:
+            - data-cache-ds004229-103
+      - run:
+          name: test ds004229
+          command: $RUN_TESTS ds004229
+      - codecov/upload
+      - store_test_results:
+          path: ./test-results
+      - store_artifacts:
+          path: ./test-results
+          destination: test-results
+      - store_artifacts:
+          path: /home/circleci/reports/ds004229
+          destination: reports/ds004229
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - mne_data/derivatives/mne-bids-pipeline/ds004229/*/*/*.html
+            - mne_data/derivatives/mne-bids-pipeline/ds004229/*/*/*.json
+            - mne_data/derivatives/mne-bids-pipeline/ds004229/*/*/*.tsv
+
+  test_eeg_matchingpennies:
+    <<: *imageconfig
+    resource_class: large  # memory for zapline
+    steps:
+      - attach_workspace:
+          at: ~/
+      - bash_env
+      - restore_cache:
+          keys:
+            - data-cache-eeg_matchingpennies-1
+      - run:
+          name: test eeg_matchingpennies
+          command: $RUN_TESTS eeg_matchingpennies
+      - codecov/upload
+      - store_test_results:
+          path: ./test-results
+      - store_artifacts:
+          path: ./test-results
+          destination: test-results
+      - store_artifacts:
+          path: /home/circleci/reports/eeg_matchingpennies
+          destination: reports/eeg_matchingpennies
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - mne_data/derivatives/mne-bids-pipeline/eeg_matchingpennies/*/*/*.html
+
+  test_MNE-funloc-data:
+    <<: *imageconfig
+    resource_class: large
+    steps:
+      - attach_workspace:
+          at: ~/
+      - bash_env
+      - restore_cache:
+          keys:
+            - data-cache-MNE-funloc-data-5
+      - run:
+          name: test MNE-funloc-data
+          command: $RUN_TESTS MNE-funloc-data
+      - codecov/upload
+      - store_test_results:
+          path: ./test-results
+      - store_artifacts:
+          path: ./test-results
+          destination: test-results
+      - store_artifacts:
+          path: /home/circleci/reports/MNE-funloc-data
+          destination: reports/MNE-funloc-data
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - mne_data/derivatives/mne-bids-pipeline/MNE-funloc-data/*/*/*.html
+
+  test_MNE-phantom-KIT-data:
+    <<: *imageconfig
+    steps:
+      - attach_workspace:
+          at: ~/
+      - bash_env
+      - restore_cache:
+          keys:
+            - data-cache-MNE-phantom-KIT-data-1
+      - run:
+          name: test MNE-phantom-KIT-data
+          command: $RUN_TESTS MNE-phantom-KIT-data
+      - codecov/upload
+      - store_test_results:
+          path: ./test-results
+      - store_artifacts:
+          path: ./test-results
+          destination: test-results
+      - store_artifacts:
+          path: /home/circleci/reports/MNE-phantom-KIT-data
+          destination: reports/MNE-phantom-KIT-data
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - mne_data/derivatives/mne-bids-pipeline/MNE-phantom-KIT-data/*/*/*.html
+
+  test_ERP_CORE_N400:
+    <<: *imageconfig
+    resource_class: large
+    steps:
+      - attach_workspace:
+          at: ~/
+      - bash_env
+      - restore_cache:
+          keys:
+            - data-cache-ERP_CORE-1
+      - run:
+          name: prepare PyVista settings dir
+          command: mkdir -p /home/circleci/.local/share/pyvista
+      - browser-tools/install-chrome
+      - run:
+          name: Check Chrome installation
+          command: |
+            google-chrome --version
+      - run:
+          name: test ERP CORE N400
+          command: $RUN_TESTS ERP_CORE_N400
+      - codecov/upload
+      - store_test_results:
+          path: ./test-results
+      - store_artifacts:
+          path: ./test-results
+          destination: test-results
+      - store_artifacts:
+          path: /home/circleci/reports/ERP_CORE
+          destination: reports/ERP_CORE
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - mne_data/derivatives/mne-bids-pipeline/ERP_CORE/*/*/*/*.html
+
+  test_ERP_CORE_ERN:
+    <<: *imageconfig
+    resource_class: large
+    steps:
+      - attach_workspace:
+          at: ~/
+      - bash_env
+      - restore_cache:
+          keys:
+            - data-cache-ERP_CORE-1
+      - run:
+          name: prepare PyVista settings dir
+          command: mkdir -p /home/circleci/.local/share/pyvista
+      - run:
+          name: test ERP CORE ERN
+          command: $RUN_TESTS ERP_CORE_ERN
+      - codecov/upload
+      - store_test_results:
+          path: ./test-results
+      - store_artifacts:
+          path: ./test-results
+          destination: test-results
+      - store_artifacts:
+          path: /home/circleci/reports/ERP_CORE
+          destination: reports/ERP_CORE
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - mne_data/derivatives/mne-bids-pipeline/ERP_CORE/*/*/*/*.html
+
+  test_ERP_CORE_LRP:
+    <<: *imageconfig
+    resource_class: large
+    steps:
+      - attach_workspace:
+          at: ~/
+      - bash_env
+      - restore_cache:
+          keys:
+            - data-cache-ERP_CORE-1
+      - run:
+          name: prepare PyVista settings dir
+          command: mkdir -p /home/circleci/.local/share/pyvista
+      - run:
+          name: test ERP CORE LRP
+          command: $RUN_TESTS ERP_CORE_LRP
+      - codecov/upload
+      - store_test_results:
+          path: ./test-results
+      - store_artifacts:
+          path: ./test-results
+          destination: test-results
+      - store_artifacts:
+          path: /home/circleci/reports/ERP_CORE
+          destination: reports/ERP_CORE
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - mne_data/derivatives/mne-bids-pipeline/ERP_CORE/*/*/*/*.html
+
+  test_ERP_CORE_MMN:
+    <<: *imageconfig
+    resource_class: large
+    steps:
+      - attach_workspace:
+          at: ~/
+      - bash_env
+      - restore_cache:
+          keys:
+            - data-cache-ERP_CORE-1
+      - run:
+          name: prepare PyVista settings dir
+          command: mkdir -p /home/circleci/.local/share/pyvista
+      - run:
+          name: test ERP CORE MMN
+          command: $RUN_TESTS ERP_CORE_MMN
+      - codecov/upload
+      - store_test_results:
+          path: ./test-results
+      - store_artifacts:
+          path: ./test-results
+          destination: test-results
+      - store_artifacts:
+          path: /home/circleci/reports/ERP_CORE
+          destination: reports/ERP_CORE
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - mne_data/derivatives/mne-bids-pipeline/ERP_CORE/*/*/*/*.html
+
+  test_ERP_CORE_N2pc:
+    <<: *imageconfig
+    resource_class: large
+    steps:
+      - attach_workspace:
+          at: ~/
+      - bash_env
+      - restore_cache:
+          keys:
+            - data-cache-ERP_CORE-1
+      - run:
+          name: prepare PyVista settings dir
+          command: mkdir -p /home/circleci/.local/share/pyvista
+      - run:
+          name: test ERP CORE N2pc
+          command: $RUN_TESTS ERP_CORE_N2pc
+      - codecov/upload
+      - store_test_results:
+          path: ./test-results
+      - store_artifacts:
+          path: ./test-results
+          destination: test-results
+      - store_artifacts:
+          path: /home/circleci/reports/ERP_CORE
+          destination: reports/ERP_CORE
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - mne_data/derivatives/mne-bids-pipeline/ERP_CORE/*/*/*/*.html
+
+  test_ERP_CORE_N170:
+    <<: *imageconfig
+    resource_class: large
+    steps:
+      - attach_workspace:
+          at: ~/
+      - bash_env
+      - restore_cache:
+          keys:
+            - data-cache-ERP_CORE-1
+      - run:
+          name: prepare PyVista settings dir
+          command: mkdir -p /home/circleci/.local/share/pyvista
+      - run:
+          name: test ERP CORE N170
+          command: $RUN_TESTS ERP_CORE_N170
+      - codecov/upload
+      - store_test_results:
+          path: ./test-results
+      - store_artifacts:
+          path: ./test-results
+          destination: test-results
+      - store_artifacts:
+          path: /home/circleci/reports/ERP_CORE
+          destination: reports/ERP_CORE
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - mne_data/derivatives/mne-bids-pipeline/ERP_CORE/*/*/*/*.html
+
+  test_ERP_CORE_P3:
+    <<: *imageconfig
+    resource_class: large
+    steps:
+      - attach_workspace:
+          at: ~/
+      - bash_env
+      - restore_cache:
+          keys:
+            - data-cache-ERP_CORE-1
+      - run:
+          name: prepare PyVista settings dir
+          command: mkdir -p /home/circleci/.local/share/pyvista
+      - run:
+          name: test ERP CORE P3
+          command: $RUN_TESTS ERP_CORE_P3
+      - codecov/upload
+      - store_test_results:
+          path: ./test-results
+      - store_artifacts:
+          path: ./test-results
+          destination: test-results
+      - store_artifacts:
+          path: /home/circleci/reports/ERP_CORE
+          destination: reports/ERP_CORE
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - mne_data/derivatives/mne-bids-pipeline/ERP_CORE/*/*/*/*.html
+
+  build_docs:
+    <<: *imageconfig
+    steps:
+      - attach_workspace:
+          at: ~/
+      - bash_env
+      - run:
+          name: Install dependencies
+          command: |
+            pip install -ve .[docs]
+      - run:
+          name: Build documentation
+          command: |
+            set -eo pipefail
+            ls ~/mne_data/derivatives/mne-bids-pipeline/*/*/*/*.html
+            make doc
+      - store_artifacts:
+          path: docs/site
+          destination: site
+
+  deploy_docs:
+    <<: *imageconfig
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "3b:da:0c:a3:e7:e8:31:08:ff:db:c3:42:c9:b5:bf:77"
+      - restore_cache:
+          keys:
+            - source-cache
+      - checkout
+      - save_cache:
+          key: source-cache
+          paths:
+            - ".git"
+      - attach_workspace:
+          at: ~/
+      - bash_env
+      - gitconfig
+      - run:
+          name: Install dependencies
+          command: |
+            pip install -ve .[docs]
+      - run:
+          # This is a bit computationally inefficient, but it should be much
+          # faster to "cp" directly on the machine rather than persist
+          # 1GB doc build to workspace then go retrieve it
+          name: Build documentation again
+          command: |
+            make doc
+      - run:
+          name: Deploy docs to gh-pages branch
+          # https://github.com/jimporter/mike
+          command: |
+            # Arguments used in all mike commands
+            ARGS="--config-file docs/mkdocs.yml"
+            # First we need to actually check out our current version of
+            # gh-pages so we don't remove it!
+            git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+            git fetch origin
+            # If it's tagged as v*, deploy as "v*" and "stable" as well
+            if git describe --tags --exact-match $(git rev-parse HEAD); then
+              VERSION="$(git describe --tags --exact-match $(git rev-parse HEAD))"
+            else
+              VERSION=""
+            fi
+            if [[ "$VERSION" == "v"* ]]; then
+              # Trim v1.0.0 to 1.0
+              KIND='stable'
+              DEPLOY_VERSION=$(echo $VERSION | sed -nE 's/^v([0-9]+\.[0-9]+).*$$/\1/p')
+              echo "Deploying $VERSION as $DEPLOY_VERSION with alias \"stable\""
+              mike deploy $DEPLOY_VERSION stable --update-aliases $ARGS
+            else
+              KIND='dev'
+              mike deploy dev $ARGS
+            fi
+            git checkout gh-pages
+            git reset $(git commit-tree HEAD^{tree} -m "Deploy and squash docs [ci skip]")
+            git log -n3  # should just be one, but let's be sure
+            git push origin --force gh-pages
+
+
+workflows:
+  version: 2
+
+  test_and_docs:
+    jobs:
+      - setup_env: &filter_tags
+          filters: &filter_tag_tags
+            tags:
+              only: /^v.*/
+
+      - cache_ds000117:
+          requires:
+            - setup_env
+          <<: *filter_tags
+      - test_ds000117:
+          requires:
+            - cache_ds000117
+          <<: *filter_tags
+
+      - cache_ds003775:
+          requires:
+            - setup_env
+          <<: *filter_tags
+      - test_ds003775:
+          requires:
+            - cache_ds003775
+          <<: *filter_tags
+
+      - cache_ds001971:
+          requires:
+            - setup_env
+          <<: *filter_tags
+      - test_ds001971:
+          requires:
+            - cache_ds001971
+          <<: *filter_tags
+
+      - cache_ds004107:
+          requires:
+            - setup_env
+          <<: *filter_tags
+      - test_ds004107:
+          requires:
+            - cache_ds004107
+          <<: *filter_tags
+
+      - cache_ds000246:
+          requires:
+            - setup_env
+          <<: *filter_tags
+      - test_ds000246:
+          requires:
+            - cache_ds000246
+          <<: *filter_tags
+
+      - cache_ds000247:
+          requires:
+            - setup_env
+          <<: *filter_tags
+      - test_ds000247:
+          requires:
+            - cache_ds000247
+          <<: *filter_tags
+
+      - cache_ds000248:
+          requires:
+            - setup_env
+          <<: *filter_tags
+      - test_ds000248_base:
+          requires:
+            - cache_ds000248
+          <<: *filter_tags
+      - test_ds000248_ica:
+          requires:
+            - cache_ds000248
+          <<: *filter_tags
+      - test_ds000248_FLASH_BEM:
+          requires:
+            - cache_ds000248
+          <<: *filter_tags
+      - test_ds000248_T1_BEM:
+          requires:
+            - cache_ds000248
+          <<: *filter_tags
+      - test_ds000248_coreg_surfaces:
+          requires:
+            - cache_ds000248
+          <<: *filter_tags
+      - test_ds000248_no_mri:
+          requires:
+            - cache_ds000248
+          <<: *filter_tags
+
+      - cache_ds001810:
+          requires:
+            - setup_env
+          <<: *filter_tags
+      - test_ds001810:
+          requires:
+            - cache_ds001810
+          <<: *filter_tags
+
+      - cache_ds003104:
+          requires:
+            - setup_env
+          <<: *filter_tags
+      - test_ds003104:
+          requires:
+            - cache_ds003104
+          <<: *filter_tags
+
+      - cache_ds003392:
+          requires:
+            - setup_env
+          <<: *filter_tags
+      - test_ds003392:
+          requires:
+            - cache_ds003392
+          <<: *filter_tags
+
+      - cache_ds004229:
+          requires:
+            - setup_env
+          <<: *filter_tags
+      - test_ds004229:
+          requires:
+            - cache_ds004229
+          <<: *filter_tags
+
+      - cache_eeg_matchingpennies:
+          requires:
+            - setup_env
+          <<: *filter_tags
+      - test_eeg_matchingpennies:
+          requires:
+            - cache_eeg_matchingpennies
+          <<: *filter_tags
+
+      - cache_MNE-funloc-data:
+          requires:
+            - setup_env
+          <<: *filter_tags
+      - test_MNE-funloc-data:
+          requires:
+            - cache_MNE-funloc-data
+          <<: *filter_tags
+
+      - cache_MNE-phantom-KIT-data:
+          requires:
+            - setup_env
+          <<: *filter_tags
+      - test_MNE-phantom-KIT-data:
+          requires:
+            - cache_MNE-phantom-KIT-data
+          <<: *filter_tags
+
+      - cache_ERP_CORE:
+          requires:
+            - setup_env
+          <<: *filter_tags
+      - test_ERP_CORE_N400:
+          requires:
+            - cache_ERP_CORE
+          <<: *filter_tags
+      - test_ERP_CORE_ERN:
+          requires:
+            - cache_ERP_CORE
+          <<: *filter_tags
+      - test_ERP_CORE_LRP:
+          requires:
+            - cache_ERP_CORE
+          <<: *filter_tags
+      - test_ERP_CORE_MMN:
+          requires:
+            - cache_ERP_CORE
+          <<: *filter_tags
+      - test_ERP_CORE_N2pc:
+          requires:
+            - cache_ERP_CORE
+          <<: *filter_tags
+      - test_ERP_CORE_N170:
+          requires:
+            - cache_ERP_CORE
+          <<: *filter_tags
+      - test_ERP_CORE_P3:
+          requires:
+            - cache_ERP_CORE
+          <<: *filter_tags
+
+      - build_docs:
+          requires:
+            - test_ds000117
+            - test_ds003775
+            - test_ds001971
+            - test_ds004107
+            - test_ds000246
+            - test_ds000247
+            - test_ds000248_base
+            - test_ds000248_ica
+            - test_ds000248_no_mri
+            - test_ds000248_T1_BEM
+            - test_ds000248_FLASH_BEM
+            - test_ds001810
+            - test_ds003104
+            - test_ds003392
+            - test_ds004229
+            - test_eeg_matchingpennies
+            - test_MNE-funloc-data
+            - test_MNE-phantom-KIT-data
+            - test_ERP_CORE_N400
+            - test_ERP_CORE_ERN
+            - test_ERP_CORE_LRP
+            - test_ERP_CORE_MMN
+            - test_ERP_CORE_N2pc
+            - test_ERP_CORE_N170
+            - test_ERP_CORE_P3
+          <<: *filter_tags
+      - deploy_docs:
+          requires:
+            - build_docs
+          filters:
+            branches:
+              only:
+                - main
+            <<: *filter_tag_tags

@@ -1,0 +1,5 @@
+dataset	lock_to	n_subjects_total	n_subjects_used	n_candidate_events	n_used_epochs	n_dropped_epochs	n_threshold_filtered_epochs	n_failed_files	n_missing_files
+clean	saccade	852	772	764327	594231	6979	94362	9	0
+clean	fixation	852	772	753352	586117	6263	92763	9	0
+eyelink	saccade	852	772	764327	589567	6979	99026	9	0
+eyelink	fixation	852	772	753352	581457	6263	97423	9	0

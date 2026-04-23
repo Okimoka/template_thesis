@@ -1,0 +1,9 @@
+dataset	lock_to	group_index	age_min	age_max	n_subjects_total	n_subjects_used	n_candidate_events	n_used_epochs	n_dropped_epochs	n_threshold_filtered_epochs	n_failed_files	n_missing_files
+eyelink	saccade	1	5.0969	7.8784	213	198	184443	141984	1745	30634	1	0
+eyelink	saccade	2	7.9059	9.9374	213	195	189121	141522	1711	28261	2	0
+eyelink	saccade	3	9.94	12.8251	213	194	196448	154005	1746	23336	2	0
+eyelink	saccade	4	12.8415	21.9012	213	185	194315	152056	1777	16795	4	0
+eyelink	fixation	1	5.0969	7.8784	213	198	183138	141141	1596	30341	1	0
+eyelink	fixation	2	7.9059	9.9374	213	195	186636	139798	1553	27836	2	0
+eyelink	fixation	3	9.94	12.8251	213	194	193532	151797	1544	22959	2	0
+eyelink	fixation	4	12.8415	21.9012	213	185	190046	148721	1570	16287	4	0

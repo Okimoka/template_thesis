@@ -1,0 +1,9 @@
+column,description
+subject,Subject ID parsed from the sub-<id> folder or filename.
+task,Task label parsed from the task-<task> entity in the report filename.
+crit1,"1 if any component table in the report has Predicted Label == ""brain"" with Max Prob > 0.9 within the first 5 rows; else 0."
+crit2,"1 if any component table in the report has at least 20 rows with Predicted Label == ""brain"" within the first 30 rows; else 0."
+crit3,"1 if any component table in the report has more than 10 ""brain"" rows and fewer than 5 ""other"" rows within the first 20 rows; else 0."
+crit4,"1 if any component table in the report has fewer than 10 ""other"" rows within the first 30 rows; else 0."
+crit5,"1 if any component table in the report has between 2 and 5 ""eye blink"" rows within the first 10 rows; else 0."
+crit6,"1 if any component table in the report has all ""eye blink"" rows marked ""Excluded"" == ""yes"" within the first 15 rows; else 0."

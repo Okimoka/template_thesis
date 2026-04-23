@@ -1,0 +1,15 @@
+key	value
+generated_at	2026-04-18T16:10:45
+target_channel	E82
+lock_options	saccade,fixation
+tmin_seconds	-0.5
+tmax_seconds	1.0
+saccade_amplitude_threshold_degrees	0.5
+fixed_peak_threshold_uv	100.0
+groups_file	/home/st156392/topoplots/more/generated_recording_groups2.jl
+participants_tsv	/home/st156392/unfold_bene/sync_quality/participants.tsv
+match_dataset_subjects	true
+max_subjects_per_dataset	<all>
+julia_version	1.12.5
+clean_subject_groups	852
+eyelink_subject_groups	852

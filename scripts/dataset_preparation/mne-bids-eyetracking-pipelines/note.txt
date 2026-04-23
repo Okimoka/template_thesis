@@ -1,0 +1,1 @@
+If starting the pipeline is slow (multiple minutes of waiting time before preprocessing steps), try the patches for _config_utils.py and _01_data_quality.py from hbn-specific.

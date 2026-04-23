@@ -1,0 +1,8 @@
+"""FreeSurfer-related processing.
+
+Surface reconstruction via FreeSurfer. These steps are not run by default.
+"""
+
+from . import _01_recon_all, _02_coreg_surfaces
+
+_STEPS = (_01_recon_all, _02_coreg_surfaces)

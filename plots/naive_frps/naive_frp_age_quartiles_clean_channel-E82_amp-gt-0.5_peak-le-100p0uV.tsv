@@ -1,0 +1,9 @@
+dataset	lock_to	group_index	age_min	age_max	n_subjects_total	n_subjects_used	n_candidate_events	n_used_epochs	n_dropped_epochs	n_threshold_filtered_epochs	n_failed_files	n_missing_files
+clean	saccade	1	5.0969	7.8784	213	198	184443	143240	1745	29378	1	0
+clean	saccade	2	7.9059	9.9374	213	195	189121	143023	1711	26760	2	0
+clean	saccade	3	9.94	12.8251	213	194	196448	155456	1746	21885	2	0
+clean	saccade	4	12.8415	21.9012	213	185	194315	152512	1777	16339	4	0
+clean	fixation	1	5.0969	7.8784	213	198	183138	142375	1596	29107	1	0
+clean	fixation	2	7.9059	9.9374	213	195	186636	141311	1553	26323	2	0
+clean	fixation	3	9.94	12.8251	213	194	193532	153217	1544	21539	2	0
+clean	fixation	4	12.8415	21.9012	213	185	190046	149214	1570	15794	4	0

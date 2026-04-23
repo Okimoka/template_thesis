@@ -1,22 +1,34 @@
-# **MSc-Thesis:** On the simulation of GIT-Templates for BSc-Theses
-**Author:** *Benedikt Ehinger*
+# **MSc-Thesis:** Insights from a very large EEG+Eyetracking dataset
+**Author:** *Okan Mazlum*
 
-**Supervisor(s):** *Supervisor 1*, *Supervisor 2*
+**Supervisor(s):** *Jevri Hanna*, *Benedikt Ehinger*
 
-**Year:** *2022*
+**Year:** *2026*
 
 ## Project Description
->provide a short description of the main goals - just copy from the proposal
+This project has two main parts:
+1. It turns the Healthy Brain Network (HBN) EEG and eye-tracking recordings into a unified and practically usable combined resource by merging the existing HBN-EEG releases, linking the original eye-tracking files, synchronizing both data streams, and introducing quality metrics for curating usable recordings.
 
-## Zotero Library Path
->Please provide the link to the Zotero group here or include a `Bib`-File in the `report` folder
+2. It uses the resulting dataset for an exploratory large-scale fixation-related potential (FRP) analysis in the free-viewing paradigms
+
 
 ## Instruction for a new student
->If a fellow student wants to reproduce all your results. What scripts, in which order, with which data need to be run?
->
->Be as specific as possible. Plan to spend **at least 1h** on this.
->
->Optional: Add a pipeline plot in which the different steps are displayed together with the corresponding scripts.
+
+### Setting up the dataset
+
+Scripts for setting up the dataset are contained in `scripts/dataset_preparation`.
+First, the dataset needs to be downloaded. All info for this can be found in `download_dataset/Readme.md`.
+
+Once the `DATASET` folder with all source data is ready, it can be merged into a unified BIDS dataset (`mergedDataset`). This only requires adjusting the input and output paths in `hbn-merge/create_merged_dataset.py` and running it (may appear stuck when running, but takes up to 20 minutes).
+
+In theory, this is enough for a workable BIDS dataset. However, it is useful to also
+1. Mark bad channels in the dataset. This can be done by running `augmentation/start_bads.sh` using sbatch or simply add_bad_channels.py manually after adjusting all file paths
+
+2. Add the mock "freeView" and "allTasks" tasks. Instructions on how to do this are found in `augmentation/add_freeView_final.py`
+
+To now produce `.fif` outputs with merged ET+EEG data, the correct version of the mne-bids-eyetracking-pipeline has to be used.
+After the python venv is set up, replace the `mne_bids_pipeline` folder with 
+
 
 ## Overview of Folder Structure 
 
