@@ -10,6 +10,10 @@ Given a BIDS dataset, this script searches recordings matching
 - Write results in status column of all `*_channels.tsv` files for the task
 - Old channels files are preserved in `*_channels.tsv.bak`.
 
+To remove the generated bad-channel annotations and restore the original
+channels files:
+    python3 add_bad_channels.py --remove --root /path/to/mergedDataset
+
 - Script uses resume logic so interrupted runs can be restarted safely.
     - already processed channels files are skipped
     - for incomplete channels files, backup is recovered and recomputed
@@ -32,6 +36,7 @@ from pathlib import Path
 import re
 import shutil
 import argparse
+import sys
 from datetime import datetime
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
@@ -40,7 +45,7 @@ import mne
 from pyprep import NoisyChannels
 
 # ---- USER INPUT ----
-BIDS_ROOT = Path("/data/work/st156392/mergedDataset/")
+BIDS_ROOT = Path("/path/to/mergedDataset/")
 SUBJECT_IDS: list[str] | None = None #["NDARAG584XLU","NDARRB942UWU","NDAREV527ZRF"]
 
 TASKS_DEFAULT: list[str] = [
@@ -201,6 +206,51 @@ def atomic_write_tsv(df: pd.DataFrame, path: Path) -> None:
                 pass
 
 
+def remove_bad_channel_annotations_for_subject(bids_root: Path, subject: str) -> dict[str, int]:
+    """
+    Restore original *_channels.tsv files from paired *_channels.tsv.bak backups.
+
+    A backup is restored only when the matching current channels.tsv exists too.
+    For each pair, the generated channels.tsv is removed and the backup is renamed
+    back to the original channels.tsv name.
+    """
+    eeg_dir = bids_root / f"sub-{subject}" / "eeg"
+    if not eeg_dir.is_dir():
+        return {"restored": 0, "skipped_missing_current": 0, "skipped_non_file": 0}
+
+    restored = 0
+    skipped_missing_current = 0
+    skipped_non_file = 0
+
+    for bak in sorted(eeg_dir.glob("*_channels.tsv.bak")):
+        ch_tsv = bak.with_name(bak.name[:-4])
+
+        if not bak.is_file():
+            skipped_non_file += 1
+            print(f"WARNING: Skipping non-file backup: {bak}", file=sys.stderr)
+            continue
+
+        if not ch_tsv.exists():
+            skipped_missing_current += 1
+            print(f"WARNING: Skipping backup without matching channels.tsv: {bak}", file=sys.stderr)
+            continue
+
+        if not ch_tsv.is_file():
+            skipped_non_file += 1
+            print(f"WARNING: Skipping non-file channels.tsv: {ch_tsv}", file=sys.stderr)
+            continue
+
+        ch_tsv.unlink()
+        bak.rename(ch_tsv)
+        restored += 1
+
+    return {
+        "restored": restored,
+        "skipped_missing_current": skipped_missing_current,
+        "skipped_non_file": skipped_non_file,
+    }
+
+
 # ---------------- CORE PROCESSING ----------------
 
 def _detect_and_write_for_task(subject: str, bids_root: Path, task: str) -> dict:
@@ -338,10 +388,15 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=str, default=str(BIDS_ROOT), help="Dataset root (contains sub-*)")
     parser.add_argument(
+        "--remove",
+        action="store_true",
+        help="Restore paired *_channels.tsv.bak files and remove generated bad-channel annotations.",
+    )
+    parser.add_argument(
         "--tasks",
         type=str,
         default="all",
-        help='Tasks to process: "all" or comma-separated list (e.g. "freeView,RestingState")',
+        help='Tasks to process: "all" or comma-separated list (e.g. "freeView,RestingState"). Ignored with --remove.',
     )
     parser.add_argument(
         "--n-jobs",
@@ -358,6 +413,26 @@ def main() -> None:
     subjects = choose_subjects(bids_root, SUBJECT_IDS)
     if not subjects:
         raise RuntimeError("No subjects selected (SUBJECT_IDS empty and no sub-* folders found).")
+
+    if args.remove:
+        total_restored = 0
+        total_skipped_missing_current = 0
+        total_skipped_non_file = 0
+
+        for subject in subjects:
+            stats = remove_bad_channel_annotations_for_subject(bids_root, subject)
+            total_restored += stats["restored"]
+            total_skipped_missing_current += stats["skipped_missing_current"]
+            total_skipped_non_file += stats["skipped_non_file"]
+
+        print(
+            f"Removed bad-channel annotations. subjects={len(subjects)} "
+            f"restored_channel_files={total_restored} "
+            f"skipped_missing_current={total_skipped_missing_current} "
+            f"skipped_non_file={total_skipped_non_file}",
+            flush=True,
+        )
+        return
 
     tasks = parse_tasks_arg(args.tasks)
     if not tasks:

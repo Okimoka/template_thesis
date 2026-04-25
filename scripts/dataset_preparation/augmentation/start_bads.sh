@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=badch
+#SBATCH --job-name=bad_channels
 #SBATCH --partition=cpu
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -13,5 +13,5 @@
 # to add bads to all freeView recordings
 
 set -euo pipefail
-source smi/bin/activate
-python3 add_bad_channels.py
+source path/to/smi/bin/activate
+python3 add_bad_channels.py --root /path/to/mergedDataset

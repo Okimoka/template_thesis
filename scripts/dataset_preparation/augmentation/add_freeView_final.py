@@ -1,10 +1,18 @@
 #!/usr/bin/env python3
 """
-Extend a BIDS(-like) dataset by adding a synthetic task (via symlinks) per subject.
+Extend a BIDS dataset by adding a synthetic task via symlinks
 
-Usage:
-  python extend_bids_freeview.py /path/to/mergedDataset
-  python extend_bids_freeview.py --remove /path/to/mergedDataset
+python3 add_freeView_final.py /path/to/mergedDataset
+python3 add_freeView_final.py --remove /path/to/mergedDataset
+
+To control which tasks to merge and what to call the merged task, change TASKS and FREEVIEW_LABEL. For example, to add allTasks, change FREEVIEW_LABEL to "allTasks" and remove the comments to add in all of the other recording types.
+
+The runs of the created mock tasks will be based on the index in TASKS. For example:
+If "ThePresent_run-1" is the third entry in TASKS, the _run-3 of the new task will be ThePresent.
+If you change "ThePresent_run-1" to be the first entry in TASKS, then _run-1 will be ThePresent.
+This is just to be aware that _run-3 may not be the same task depending on your merged task definition (this problem does not occur with freeView and allTasks, as freeView is just a subset of the first few tasks).
+
+
 
 Partly LLM written
 """

@@ -6,8 +6,8 @@ import mne
 EXPERIMENT = 1
 USE_ICA = True
 
-bids_root = "/data/work/st156392/mergedDataset"
-deriv_root = "/data/work/st156392/mergedDataset/derivatives"
+bids_root = "/path/to/mergedDataset"
+deriv_root = bids_root + "/derivatives"
 subjects_dir = None
 
 subjects = "all"

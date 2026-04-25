@@ -1,6 +1,6 @@
 #!/bin/bash
-#SBATCH --job-name=subj_synced
-#SBATCH --partition=cpu_il
+#SBATCH --job-name=et_pipeline
+#SBATCH --partition=cpu
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
@@ -8,16 +8,22 @@
 #SBATCH --time=2:00:00
 # Keep this aligned with the number of subjects in subjects_list.txt.
 #SBATCH --array=0-2230%24
-#SBATCH --output=brain_logs/%x_%A_%a.out
-#SBATCH --error=brain_logs/%x_%A_%a.err
+#SBATCH --output=pipeline_logs/%x_%A_%a.out
+#SBATCH --error=pipeline_logs/%x_%A_%a.err
 
-# safety checks LLM written
-
-SUBMIT_DIR="${SLURM_SUBMIT_DIR:-$PWD}"
+# use absolute paths
+SMI_DIR="/path/to/smi"
+SUBJECT_LIST="/path/to/subjects_list.txt"
+CONFIG_PATH="/path/to/config.py"
 
 # activate the right python version
-source "$SUBMIT_DIR/smi/bin/activate"
-export PATH=/pfs/work9/workspace/scratch/st_st156392-mydata/smi/bin:$PATH
+if [[ ! -d "$SMI_DIR" ]]; then
+    echo "SMI directory not found: $SMI_DIR" >&2
+    exit 1
+fi
+
+source "$SMI_DIR/bin/activate"
+export PATH="$SMI_DIR/bin:$PATH"
 
 # limit to 1 thread for each array job
 export OMP_NUM_THREADS=1
@@ -26,11 +32,14 @@ export OPENBLAS_NUM_THREADS=1
 export NUMEXPR_NUM_THREADS=1
 
 # subjects_list.txt needs list one subject per line (without "sub-")
-SUBJECT_LIST="$SUBMIT_DIR/subjects_list.txt"
-CONFIG_PATH="$SUBMIT_DIR/config.py"
 
 if [[ ! -f "$SUBJECT_LIST" ]]; then
     echo "Subject list not found: $SUBJECT_LIST" >&2
+    exit 1
+fi
+
+if [[ ! -f "$CONFIG_PATH" ]]; then
+    echo "Config file not found: $CONFIG_PATH" >&2
     exit 1
 fi
 
