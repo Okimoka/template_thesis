@@ -4,9 +4,9 @@ if !haskey(ENV, "JULIA_PYTHONCALL_EXE")
 end
 
 """
-This script is mostly a copy of Benedikt Ehinger's prototype implementation, put into an executable script.
+This script is mostly a copy of Benedikt Ehinger's prototype implementation, put into an executable script (instead of pluto notebook).
 It uses the raw files and synchronizes them manually.
-To make this exactly match with the effects plot created from the .fif, we add artificial shift and scale to the ET data stream, in order to match the latencies of the .fif exactly.
+To make this exactly match with the effects plot created from the synced .fif, we add artificial shift and scale to the ET data stream, in order to match the latencies of the .fif exactly.
 The sample recording used here already has very good synchronization.
 """
 
