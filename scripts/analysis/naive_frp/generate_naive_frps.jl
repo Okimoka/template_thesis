@@ -82,6 +82,7 @@ end
 function read_fif(fif_path::AbstractString)
     raw_mne = py_mne.io.read_raw_fif(fif_path, preload = true, verbose = "ERROR")
     ann_df = annotations_to_dataframe(raw_mne)
+    ann_df.onset .-= pyconvert(Float64, raw_mne.first_time)
     eeg_only = raw_mne.copy().set_eeg_reference().pick("eeg")
     eeg_data = pyconvert(Array{Float64, 2}, eeg_only.get_data(units = "uV"))
     eeg_ch_names = pyconvert(Vector{String}, eeg_only.ch_names)

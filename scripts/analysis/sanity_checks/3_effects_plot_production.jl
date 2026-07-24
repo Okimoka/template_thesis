@@ -1,5 +1,22 @@
+"""
+This is the production grouped-FIF model-fitting script adapted for sanity comparisons by exposing more parameters.
+It was also modifed to allow standalone execution, which fits the NDARUF540ZJ1 run-4 recording and saves both the model and its effects plot (outputs identical to 2_effects_plot_params.jl).
+
+Using these parameters instead, the script will produce the same models and plots as were used in the paper analyses
+
+STANDALONE_CLAMP_EYE = ["L"]
+STANDALONE_SOLVER_BACKEND = :gpu
+STANDALONE_IGNORE_BAD_CHANNELS = false
+STANDALONE_EXCLUDE_EDGE_SACCADES = false
+STANDALONE_ALWAYS_APPLY_AVERAGE_REFERENCE = false
+STANDALONE_SEARCH_FORWARD_FOR_FIXATION = false
+
+"""
+
+using CairoMakie
 using DataFrames
 using Unfold
+using UnfoldMakie
 using StatsBase
 using StatsModels: ContinuousTerm
 using BSplineKit
@@ -27,6 +44,23 @@ const MODEL_OUTPUT_DIR = joinpath(@__DIR__, "final_fitted_models_baseline_interp
 const FIR_TIME_WINDOW = (-0.5, 1.0)
 const MODEL_NAME_HASH_HEX_LENGTH = 16
 const MODEL_NAME_LABEL_MAX_LENGTH = 96
+
+
+const STANDALONE_FIF_PATH =
+    "/path/to/sub-NDARUF540ZJ1_task-freeView_run-4_proc-eyelink_raw.fif"
+const STANDALONE_MODEL_OUTPUT = joinpath(@__DIR__, "3_effects_plot_production.jld2")
+const STANDALONE_PLOT_OUTPUT = joinpath(@__DIR__, "3_effects_plot_production.png")
+const STANDALONE_EYE = ["L"]
+const STANDALONE_CLAMP_EYE = ["L", "R"]
+const STANDALONE_SOLVER_BACKEND = :cpu
+const STANDALONE_FORMULA_MODE = :regular
+const STANDALONE_EVENT_ONSET = :saccade
+const STANDALONE_IGNORE_BAD_CHANNELS = true
+const STANDALONE_EXCLUDE_EDGE_SACCADES = true
+const STANDALONE_ALWAYS_APPLY_AVERAGE_REFERENCE = true
+const STANDALONE_SEARCH_FORWARD_FOR_FIXATION = true
+const PLOT_CHANNEL = 76
+const PLOT_AMPLITUDES = 1:2:20
 
 eye_event_description(kind::AbstractString, eye_name::AbstractString) = "ET_$(kind) $(eye_name)"
 eye_event_name(kind::AbstractString, eye_name::AbstractString) = "$(kind) $(eye_name)"
@@ -227,14 +261,24 @@ function interpolate_bad_eeg_channels!(raw_mne)
     return raw_mne
 end
 
-function read_fif(fif_path::AbstractString)
+function read_fif(
+    fif_path::AbstractString;
+    ignore_bad_channels = false,
+    always_apply_average_reference = false,
+)
     raw_mne = get_py_mne().io.read_raw_fif(fif_path, preload = true, verbose = "ERROR")
     ann_df = annotations_to_dataframe(raw_mne)
     ann_df.onset .-= pyconvert(Float64, raw_mne.first_time)
     eeg_only = raw_mne.copy().pick("eeg")
-    # Interpolate marked EEG bads before rereferencing so they do not bias the average.
-    interpolate_bad_eeg_channels!(eeg_only)
-    has_active_average_reference(raw_mne) || eeg_only.set_eeg_reference(verbose = "ERROR")
+    if ignore_bad_channels
+        eeg_only.info["bads"] = pybuiltins.list()
+    else
+        # Interpolate marked EEG bads before rereferencing so they do not bias the average.
+        interpolate_bad_eeg_channels!(eeg_only)
+    end
+    if always_apply_average_reference || !has_active_average_reference(raw_mne)
+        eeg_only.set_eeg_reference(verbose = "ERROR")
+    end
     eeg_data = pyconvert(Array{Float64, 2}, eeg_only.get_data(units = "uV"))
     eeg_ch_names = pyconvert(Vector{String}, eeg_only.ch_names)
     sfreq = pyconvert(Float64, eeg_only.info["sfreq"])
@@ -242,7 +286,11 @@ function read_fif(fif_path::AbstractString)
     return eeg_data, eeg_ch_names, sfreq, ann_df
 end
 
-function read_fif_group(fif_paths::Tuple)
+function read_fif_group(
+    fif_paths::Tuple;
+    ignore_bad_channels = false,
+    always_apply_average_reference = false,
+)
     eeg_data_parts = Matrix{Float64}[]
     ann_parts = DataFrame[]
     boundary_samples = Int[]
@@ -250,7 +298,11 @@ function read_fif_group(fif_paths::Tuple)
     sfreq = nothing
 
     for (i, fif_path) in pairs(fif_paths)
-        eeg_data, _, sfreq, ann_df = read_fif(fif_path)
+        eeg_data, _, sfreq, ann_df = read_fif(
+            fif_path;
+            ignore_bad_channels = ignore_bad_channels,
+            always_apply_average_reference = always_apply_average_reference,
+        )
         ann_shifted = copy(ann_df)
         ann_shifted.onset .+= sample_offset / sfreq
 
@@ -305,6 +357,24 @@ function filter_saccade_latency_and_boundaries(
     return saccade_events
 end
 
+# bene script logic (consider only samples before video stop, only works for movie tasks)
+function analysis_samples(ann_df::DataFrame, n_samples::Integer, sfreq::Real)
+    stop_ix = findall(ann_df.description .== "video_stop")
+    isempty(stop_ix) && return n_samples
+    return min(n_samples, floor(Int, minimum(ann_df.onset[stop_ix]) * sfreq))
+end
+
+# bene script logic (consider only saccades that are fully within the FIR basis window)
+function exclude_outside_firbasis(
+    saccade_events::DataFrame,
+    n_samples::Integer;
+    sfreq::Real,
+)
+    min_latency = -FIR_TIME_WINDOW[1] * sfreq
+    max_latency = n_samples - FIR_TIME_WINDOW[2] * sfreq
+    return subset(saccade_events, :latency => ByRow(x -> min_latency <= x <= max_latency))
+end
+
 function clamp_source_events(
     ann_df::DataFrame,
     sfreq::Real;
@@ -332,6 +402,45 @@ function clamp_source_events(
     return clamp_events
 end
 
+# Pair saccades with fixations for the selected eye. With search disabled, the fixation
+# must be the immediately following annotation. With search enabled, unrelated annotations
+# are skipped until a same-eye fixation, saccade, or blink is reached.
+function paired_saccade_fixation_indices(
+    descriptions,
+    eye_name::AbstractString,
+    search_forward_for_fixation = false,
+)
+    saccade_description = eye_event_description("Saccade", eye_name)
+    fixation_description = eye_event_description("Fixation", eye_name)
+
+    if !search_forward_for_fixation
+        fixation_idx = findall(i ->
+            descriptions[i] == fixation_description &&
+            i > firstindex(descriptions) &&
+            descriptions[i - 1] == saccade_description,
+            eachindex(descriptions),
+        )
+        return fixation_idx .- 1, fixation_idx
+    end
+
+    blink_description = eye_event_description("Blink", eye_name)
+    saccade_idx = Int[]
+    fixation_idx = Int[]
+    for i in eachindex(descriptions)
+        descriptions[i] == saccade_description || continue
+        for j in (i + 1):lastindex(descriptions)
+            if descriptions[j] == fixation_description
+                push!(saccade_idx, i)
+                push!(fixation_idx, j)
+                break
+            elseif descriptions[j] == saccade_description || descriptions[j] == blink_description
+                break
+            end
+        end
+    end
+    return saccade_idx, fixation_idx
+end
+
 function prepare_saccade_events(
     ann_df::DataFrame,
     sfreq::Real;
@@ -340,6 +449,7 @@ function prepare_saccade_events(
     boundary_samples = Int[],
     formula_mode = DEFAULT_FORMULA_MODE,
     event_onset = DEFAULT_EVENT_ONSET,
+    search_forward_for_fixation = false,
 )
     resolved_eye = normalize_event_eye(eye)
     resolved_formula_mode = normalize_formula_mode(formula_mode)
@@ -365,14 +475,11 @@ function prepare_saccade_events(
             event_uses_fixation_onset(resolved_event_onset)
 
         if needs_fixation_pair
-            fixation_description = eye_event_description("Fixation", eye_name)
-            fixation_idx = findall(i ->
-                descriptions[i] == fixation_description &&
-                i > firstindex(descriptions) &&
-                descriptions[i - 1] == saccade_description,
-                eachindex(descriptions)
+            saccade_idx, fixation_idx = paired_saccade_fixation_indices(
+                descriptions,
+                eye_name,
+                search_forward_for_fixation,
             )
-            saccade_idx = fixation_idx .- 1
 
             skipped_saccades = count(==(saccade_description), descriptions) - length(saccade_idx)
             if skipped_saccades > 0
@@ -499,8 +606,16 @@ function fit_grouped_file_model(
     solver_backend = DEFAULT_SOLVER_BACKEND,
     formula_mode = DEFAULT_FORMULA_MODE,
     event_onset = DEFAULT_EVENT_ONSET,
+    ignore_bad_channels = false,
+    exclude_edge_saccades = false,
+    always_apply_average_reference = false,
+    search_forward_for_fixation = false,
 )
-    eeg_data, sfreq, ann_df, boundary_samples = read_fif_group(fif_paths)
+    eeg_data, sfreq, ann_df, boundary_samples = read_fif_group(
+        fif_paths;
+        ignore_bad_channels = ignore_bad_channels,
+        always_apply_average_reference = always_apply_average_reference,
+    )
     saccade_events = prepare_saccade_events(
         ann_df,
         sfreq;
@@ -509,7 +624,13 @@ function fit_grouped_file_model(
         boundary_samples = boundary_samples,
         formula_mode = formula_mode,
         event_onset = event_onset,
+        search_forward_for_fixation = search_forward_for_fixation,
     )
+
+    if exclude_edge_saccades
+        n_samples = analysis_samples(ann_df, size(eeg_data, 2), sfreq)
+        saccade_events = exclude_outside_firbasis(saccade_events, n_samples; sfreq = sfreq)
+    end
 
     return fit_model_from_data(
         eeg_data,
@@ -609,7 +730,7 @@ end
 function fit_and_save_group(
     fif_group::Tuple;
     output_dir::AbstractString = MODEL_OUTPUT_DIR,
-    skip_existing::Bool = false,
+    skip_existing = false,
     log_prefix::AbstractString = "",
     eye = EVENT_EYE,
     clamp_eye = CLAMP_LIMIT_EYE,
@@ -684,7 +805,7 @@ end
 function main(
     fif_paths::AbstractVector{<:Tuple};
     output_dir::AbstractString = MODEL_OUTPUT_DIR,
-    skip_existing::Bool = false,
+    skip_existing = false,
     log_prefix::AbstractString = "",
     eye = EVENT_EYE,
     clamp_eye = CLAMP_LIMIT_EYE,
@@ -728,33 +849,34 @@ function main(
     return results
 end
 
-function default_fif_paths()
-    return [
+function plot_model_effects(model)
+    effect_df = dropmissing(effects(Dict(:Amplitude => PLOT_AMPLITUDES), model))
+    effect_df = subset(effect_df, :channel => ByRow(==(PLOT_CHANNEL)))
+    return plot_erp(effect_df; mapping = (; color = :Amplitude, group = :Amplitude))
+end
 
-        # list of random subjects "NDARNF525CRN","NDARNH110NV6","NDARNJ987CYD","NDARNM384EEW","NDARNM708YTF","NDARNN321YCR","NDARNN989FZ4","NDARNP381RZ4","NDARNT205ZKP","NDARNV399BV4","NDARNV983DET","NDARNX050XBN","NDARNX562GP3","NDARNZ141GNH","NDARPA750HZ1","NDARPE424GZZ","NDARPE623MBW","NDARPF325KE2","NDARPF395NV5","NDARPF460UXT","NDARPG387YY2","NDARPJ001BVE","NDARPJ151ERK","NDARPK597XH0","NDARPL651MD5","NDARPM172XGD","NDARPV423ECQ","NDARPX098XYT","NDARPX661BF1","NDARPX838GCD","NDARPX980MUN","NDARPY302MV9","NDARPY478YM0","NDARPZ720WKW"
+# Standalone run just for sanity check
+function run_standalone()
+    model = fit_grouped_file_model(
+        (STANDALONE_FIF_PATH,);
+        eye = STANDALONE_EYE,
+        clamp_eye = STANDALONE_CLAMP_EYE,
+        solver_backend = STANDALONE_SOLVER_BACKEND,
+        formula_mode = STANDALONE_FORMULA_MODE,
+        event_onset = STANDALONE_EVENT_ONSET,
+        ignore_bad_channels = STANDALONE_IGNORE_BAD_CHANNELS,
+        exclude_edge_saccades = STANDALONE_EXCLUDE_EDGE_SACCADES,
+        always_apply_average_reference = STANDALONE_ALWAYS_APPLY_AVERAGE_REFERENCE,
+        search_forward_for_fixation = STANDALONE_SEARCH_FORWARD_FOR_FIXATION,
+    )
 
-
-(
-    "/home/oki/ehlers-work2/mergedDataset/derivatives/sub-NDARRR464UTB/eeg/sub-NDARRR464UTB_task-freeView_run-3_proc-clean_raw.fif",
-    "/home/oki/ehlers-work2/mergedDataset/derivatives/sub-NDARRR464UTB/eeg/sub-NDARRR464UTB_task-freeView_run-4_proc-clean_raw.fif",
-    "/home/oki/ehlers-work2/mergedDataset/derivatives/sub-NDARRR464UTB/eeg/sub-NDARRR464UTB_task-freeView_run-5_proc-clean_raw.fif",
-),
-
-("/home/oki/ehlers-work2/mergedDataset/derivatives/sub-NDARRR570MC0/eeg/sub-NDARRR570MC0_task-freeView_run-3_proc-clean_raw.fif",),
-("/home/oki/ehlers-work2/mergedDataset/derivatives/sub-NDARRU820CXW/eeg/sub-NDARRU820CXW_task-freeView_run-3_proc-clean_raw.fif",),
-("/home/oki/ehlers-work2/mergedDataset/derivatives/sub-NDARRV843HGK/eeg/sub-NDARRV843HGK_task-freeView_run-3_proc-clean_raw.fif",),
-("/home/oki/ehlers-work2/mergedDataset/derivatives/sub-NDARRX900GP4/eeg/sub-NDARRX900GP4_task-freeView_run-3_proc-clean_raw.fif",),
-("/home/oki/ehlers-work2/mergedDataset/derivatives/sub-NDARRY807MXC/eeg/sub-NDARRY807MXC_task-freeView_run-3_proc-clean_raw.fif",),
-("/home/oki/ehlers-work2/mergedDataset/derivatives/sub-NDARRR464UTB/eeg/sub-NDARRR464UTB_task-freeView_run-3_proc-eyelink_raw.fif",),
-("/home/oki/ehlers-work2/mergedDataset/derivatives/sub-NDARRR570MC0/eeg/sub-NDARRR570MC0_task-freeView_run-3_proc-eyelink_raw.fif",),
-("/home/oki/ehlers-work2/mergedDataset/derivatives/sub-NDARRU820CXW/eeg/sub-NDARRU820CXW_task-freeView_run-3_proc-eyelink_raw.fif",),
-("/home/oki/ehlers-work2/mergedDataset/derivatives/sub-NDARRV843HGK/eeg/sub-NDARRV843HGK_task-freeView_run-3_proc-eyelink_raw.fif",),
-("/home/oki/ehlers-work2/mergedDataset/derivatives/sub-NDARRX900GP4/eeg/sub-NDARRX900GP4_task-freeView_run-3_proc-eyelink_raw.fif",),
-("/home/oki/ehlers-work2/mergedDataset/derivatives/sub-NDARRY807MXC/eeg/sub-NDARRY807MXC_task-freeView_run-3_proc-eyelink_raw.fif",),
-
-    ]
+    Unfold.save(STANDALONE_MODEL_OUTPUT, model; compress = false)
+    save(STANDALONE_PLOT_OUTPUT, plot_model_effects(model))
+    @info "saved sanity model" STANDALONE_MODEL_OUTPUT
+    @info "saved effects plot" STANDALONE_PLOT_OUTPUT
+    return model
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__
-    main(default_fif_paths())
+    run_standalone()
 end
