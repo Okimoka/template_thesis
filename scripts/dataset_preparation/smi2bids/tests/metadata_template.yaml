@@ -1,0 +1,29 @@
+# Example metadata input for smi2bids.
+#
+# Copy this file and pass the copy as ``metadata_file``. Values present in the
+# *_Samples.txt header are inferred automatically. Leave an unavailable value
+# as null. Non-null YAML values are authoritative and take precedence over the
+# SMI header.
+
+# Common eye-tracking physio.json metadata
+Manufacturer: SensoMotoric Instruments
+ManufacturersModelName:
+DeviceSerialNumber:
+SampleCoordinateSystem: gaze-on-screen
+EyeTrackingMethod: P-CR
+EyeTrackerDistance:
+RawDataFilters:
+
+# Optional run/task metadata written to <bids-prefix>_events.json
+TaskName:
+InstitutionName:
+InstitutionAddress:
+
+# REQUIRED by BIDS for gaze-on-screen recordings. The SMI Calibration Area,
+# Stimulus Dimension, and Head Distance fields normally supply these.
+StimulusPresentation:
+  ScreenDistance:
+  ScreenOrigin: [top, left]
+  ScreenRefreshRate:
+  ScreenResolution:
+  ScreenSize:

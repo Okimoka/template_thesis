@@ -17860,3 +17860,56 @@
 [2026-03-04 21:35:59] Cannot map 'vis_learn' for sub-NDARZZ993CEV: neither seqLearning6target nor seqLearning8target found in EEG
 [2026-03-04 21:35:59] Cannot map 'vis_learn' for sub-NDARZZ993CEV: neither seqLearning6target nor seqLearning8target found in EEG
 [2026-03-04 21:35:59] ET Merged into: /data/work/st156392/mergedDataset
+[2026-07-24 11:49:42] Started merging process
+[2026-07-24 11:49:42] Expected 11 release folders in EEG, found 2 at /home/oki/Desktop/WIRKLICH_FINAL_REPO/golden_slice/EEG
+[2026-07-24 11:49:42] [ds005505] Unexpected root entries: ['.datalad', '.gitattributes', 'task-seqLearning6target_eeg.json', 'task-seqLearning6target_events.json', 'task-seqLearning8target_eeg.json', 'task-seqLearning8target_events.json']
+[2026-07-24 11:49:42] [ds005512] Unexpected root entries: ['.datalad', '.gitattributes', 'task-seqLearning6target_eeg.json', 'task-seqLearning6target_events.json', 'task-seqLearning8target_eeg.json', 'task-seqLearning8target_events.json']
+[2026-07-24 11:49:42] [ds005505] missing code table 'seqLearning_quality_table.tsv'; skipping this release.
+[2026-07-24 11:49:42] [ds005512] missing code table 'seqLearning_quality_table.tsv'; skipping this release.
+[2026-07-24 11:49:42] No sources found for code table 'seqLearning_quality_table.tsv' across all releases; not writing this file.
+[2026-07-24 11:49:42] Merged root-level files written to: /home/oki/Desktop/WIRKLICH_FINAL_REPO/mergedDataset
+[2026-07-24 11:49:42] Subjects written to: /home/oki/Desktop/WIRKLICH_FINAL_REPO/mergedDataset
+[2026-07-24 11:49:42] No matching EEG task for 'WISC_2nd' (subject NDARAA306NT2)
+[2026-07-24 11:49:42] No matching EEG task for 'WISC_2nd' (subject NDARAA306NT2)
+[2026-07-24 11:49:42] Cannot map 'vis_learn' for sub-NDARAA306NT2: neither seqLearning6target nor seqLearning8target found in EEG
+[2026-07-24 11:49:42] Cannot map 'vis_learn' for sub-NDARAA306NT2: neither seqLearning6target nor seqLearning8target found in EEG
+[2026-07-24 11:49:42] No matching EEG task for 'WISC_2nd' (subject NDARAC904DMU)
+[2026-07-24 11:49:42] No matching EEG task for 'WISC_2nd' (subject NDARAC904DMU)
+[2026-07-24 11:49:42] No matching EEG task for 'calibration' (subject NDARAC904DMU)
+[2026-07-24 11:49:42] No matching EEG task for 'calibration' (subject NDARAC904DMU)
+[2026-07-24 11:49:42] ET Merged into: /home/oki/Desktop/WIRKLICH_FINAL_REPO/mergedDataset
+[2026-07-25 02:13:36] Started merging process
+[2026-07-25 02:13:36] Expected 11 release folders in EEG, found 4 at /home/oki/Desktop/WIRKLICH_FINAL_REPO/golden_slice/EEG
+[2026-07-25 02:13:36] participants.json: Found differing JSON between ds005505 and ds005515. Using ds005505 for merged.
+[2026-07-25 02:13:36] task-contrastChangeDetection_events.json: Found differing JSON between ds005505 and ds005515. Using ds005505 for merged.
+[2026-07-25 02:13:36] task-DespicableMe_events.json: Found differing JSON between ds005505 and ds005515. Using ds005505 for merged.
+[2026-07-25 02:13:36] task-DiaryOfAWimpyKid_events.json: Found differing JSON between ds005505 and ds005515. Using ds005505 for merged.
+[2026-07-25 02:13:36] task-FunwithFractals_events.json: Found differing JSON between ds005505 and ds005515. Using ds005505 for merged.
+[2026-07-25 02:13:36] task-RestingState_events.json: Found differing JSON between ds005505 and ds005515. Using ds005505 for merged.
+[2026-07-25 02:13:36] task-surroundSupp_events.json: Found differing JSON between ds005505 and ds005515. Using ds005505 for merged.
+[2026-07-25 02:13:36] task-symbolSearch_events.json: Found differing JSON between ds005505 and ds005515. Using ds005505 for merged.
+[2026-07-25 02:13:36] task-ThePresent_events.json: Found differing JSON between ds005505 and ds005515. Using ds005505 for merged.
+[2026-07-25 02:13:37] [ds005505] Unexpected root entries: ['.datalad', '.gitattributes', 'task-seqLearning6target_eeg.json', 'task-seqLearning6target_events.json', 'task-seqLearning8target_eeg.json', 'task-seqLearning8target_events.json']
+[2026-07-25 02:13:37] [ds005506] Unexpected root entries: ['.datalad', '.gitattributes', 'task-seqLearning6target_eeg.json', 'task-seqLearning6target_events.json', 'task-seqLearning8target_eeg.json', 'task-seqLearning8target_events.json']
+[2026-07-25 02:13:37] [ds005512] Unexpected root entries: ['.datalad', '.gitattributes', 'task-seqLearning6target_eeg.json', 'task-seqLearning6target_events.json', 'task-seqLearning8target_eeg.json', 'task-seqLearning8target_events.json']
+[2026-07-25 02:13:37] [ds005515] Unexpected root entries: ['.datalad', '.gitattributes']
+[2026-07-25 02:13:37] [ds005515] missing code table 'seqLearning6target_quality_table.tsv'; skipping this release.
+[2026-07-25 02:13:37] [ds005515] missing code table 'seqLearning8target_quality_table.tsv'; skipping this release.
+[2026-07-25 02:13:37] [ds005505] missing code table 'seqLearning_quality_table.tsv'; skipping this release.
+[2026-07-25 02:13:37] [ds005506] missing code table 'seqLearning_quality_table.tsv'; skipping this release.
+[2026-07-25 02:13:37] [ds005512] missing code table 'seqLearning_quality_table.tsv'; skipping this release.
+[2026-07-25 02:13:37] [ds005515] missing code table 'seqLearning_quality_table.tsv'; skipping this release.
+[2026-07-25 02:13:37] No sources found for code table 'seqLearning_quality_table.tsv' across all releases; not writing this file.
+[2026-07-25 02:13:37] Merged root-level files written to: /home/oki/Desktop/WIRKLICH_FINAL_REPO/mergedDataset
+[2026-07-25 02:13:37] Subjects written to: /home/oki/Desktop/WIRKLICH_FINAL_REPO/mergedDataset
+[2026-07-25 02:13:37] No matching EEG task for 'WISC_2nd' (subject NDARAA306NT2)
+[2026-07-25 02:13:37] No matching EEG task for 'WISC_2nd' (subject NDARAA306NT2)
+[2026-07-25 02:13:37] Cannot map 'vis_learn' for sub-NDARAA306NT2: neither seqLearning6target nor seqLearning8target found in EEG
+[2026-07-25 02:13:37] Cannot map 'vis_learn' for sub-NDARAA306NT2: neither seqLearning6target nor seqLearning8target found in EEG
+[2026-07-25 02:13:37] Cannot map 'vis_learn' for sub-NDARAB674LNB: neither seqLearning6target nor seqLearning8target found in EEG
+[2026-07-25 02:13:37] Cannot map 'vis_learn' for sub-NDARAB674LNB: neither seqLearning6target nor seqLearning8target found in EEG
+[2026-07-25 02:13:37] No matching EEG task for 'WISC_2nd' (subject NDARAC904DMU)
+[2026-07-25 02:13:37] No matching EEG task for 'WISC_2nd' (subject NDARAC904DMU)
+[2026-07-25 02:13:37] No matching EEG task for 'calibration' (subject NDARAC904DMU)
+[2026-07-25 02:13:37] No matching EEG task for 'calibration' (subject NDARAC904DMU)
+[2026-07-25 02:13:37] ET Merged into: /home/oki/Desktop/WIRKLICH_FINAL_REPO/mergedDataset

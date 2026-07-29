@@ -1,0 +1,10 @@
+{
+  "Name": "smi2bids representative conversions",
+  "BIDSVersion": "1.11.1",
+  "DatasetType": "raw",
+  "License": "Mixed HBN licences; see README",
+  "Authors": [
+    "Child Mind Institute Healthy Brain Network",
+    "smi2bids developers"
+  ]
+}

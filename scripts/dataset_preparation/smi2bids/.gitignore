@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ruff_cache/
+build/
+dist/
+
+# Real HBN recordings are downloaded on demand and keep their HBN licences.
+tests/inputs/**/*_Samples.txt
+tests/inputs/**/*_Events.txt
+tests/bids_output/sub-*/beh/*_physio.tsv.gz
+tests/bids_output/sub-*/beh/*_physio.json
+tests/bids_output/sub-*/beh/*_physioevents.tsv.gz
+tests/bids_output/sub-*/beh/*_physioevents.json
+tests/bids_output/sub-*/beh/*_events.json

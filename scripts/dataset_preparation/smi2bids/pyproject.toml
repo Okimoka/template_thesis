@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "smi2bids"
+version = "0.1.0"
+description = "Convert SMI iView X exports to BIDS eye-tracking recordings"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "smi2bids developers"}]
+dependencies = ["pandas>=2", "PyYAML>=6"]
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering",
+]
+
+[project.scripts]
+smi2bids = "smi2bids._cli:cli"
